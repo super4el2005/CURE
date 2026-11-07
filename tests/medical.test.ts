@@ -1,0 +1,360 @@
+import { expect, it, rstest } from "@rstest/core";
+
+import { createMedicalCache, saveMedicalRecords } from "@/src/lib/medical-cache";
+import { filterMedicalRecords } from "@/src/lib/medical-catalog";
+import type { MedicalRecord, MedicalResult } from "@/src/lib/medical-catalog";
+import { createMedicalProviders } from "@/src/server/medical/providers";
+import { createMedicalHandler } from "@/src/server/medical/search";
+import { createWhoClient } from "@/src/server/medical/who";
+
+const entry: MedicalRecord = {
+  id: "ror:1",
+  source: "ror",
+  sourceId: "1",
+  title: "Medical University",
+  description: "",
+  code: "",
+  url: "https://ror.org/1",
+  dataLanguage: "en",
+  version: "2026",
+  fetchedAt: "2026-11-07",
+  country: "GB",
+  latitude: null,
+  longitude: null,
+};
+const result: MedicalResult = {
+  source: "ror",
+  records: [entry],
+  total: 1,
+  truncated: false,
+  fetchedAt: entry.fetchedAt,
+  dataLanguage: "en",
+};
+function fixtureFetch(
+  bodies: unknown[],
+  seen: Array<{ url: string; init?: RequestInit | undefined }> = [],
+): typeof fetch {
+  return async (input, init) => {
+    seen.push({ url: String(input), init });
+    const body = bodies.shift();
+    if (body instanceof Response) return body;
+    if (body === undefined) throw new Error("Unexpected upstream request");
+    return Response.json(body);
+  };
+}
+function request(body: unknown, origin = "https://cure.example") {
+  return new Request("https://cure.example/api/medical/search", {
+    method: "POST",
+    headers: { origin, "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+it("normalizes ROR v2 educational organizations and provenance", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const search = createMedicalProviders(
+    fixtureFetch(
+      [
+        {
+          number_of_results: 22,
+          items: [
+            {
+              id: "https://ror.org/1",
+              names: [{ value: "Medical University", lang: "en", types: ["ror_display"] }],
+              locations: [{ geonames_details: { country_code: "GB", lat: 51, lng: 0 } }],
+              admin: { last_modified: { date: "2026-01-01" } },
+            },
+          ],
+        },
+      ],
+      seen,
+    ),
+  );
+  const response = await search({ source: "ror", query: "medical" }, "ru");
+  expect(new URL(seen[0]!.url).searchParams.get("filter")).toBe("types:education");
+  expect(response.records[0]).toMatchObject({
+    title: "Medical University",
+    country: "GB",
+    latitude: 51,
+    version: "2026-01-01",
+  });
+  expect(response.truncated).toBe(true);
+});
+
+it("uses WHO OAuth once, requested ICD-11 locale and direct ICD-10 code lookup", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const who = createWhoClient(
+    fixtureFetch(
+      [
+        { access_token: "private-token", expires_in: 3600 },
+        {
+          destinationEntities: [
+            { id: "http://id.who.int/icd/entity/1", title: "<em>Астма</em>", theCode: "CA23" },
+          ],
+          resultChopped: false,
+        },
+        {
+          "@id": "http://id.who.int/icd/release/10/2019/J45",
+          title: { "@value": "Asthma" },
+          code: "J45",
+        },
+      ],
+      seen,
+    ),
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  const eleven = await who({ source: "icd11", query: "астма" }, "ru", "today");
+  const ten = await who({ source: "icd10", query: "j45" }, "ru", "today");
+  expect(eleven.records[0]).toMatchObject({
+    title: "Астма",
+    code: "CA23",
+    dataLanguage: "ru",
+    version: "2026-01",
+  });
+  expect(ten.records[0]).toMatchObject({ title: "Asthma", dataLanguage: "en" });
+  expect(seen).toHaveLength(3);
+  expect(seen[2]!.url).toBe("https://id.who.int/icd/release/10/2019/J45");
+  expect(JSON.stringify(eleven)).not.toContain("private-token");
+});
+
+it("distinguishes missing WHO credentials and unknown ICD-10 code", async () => {
+  await expect(
+    createWhoClient(fixtureFetch([]), {})({ source: "icd11", query: "asthma" }, "en", "now"),
+  ).rejects.toMatchObject({ code: "SOURCE_NOT_CONFIGURED", status: 503 });
+  const who = createWhoClient(
+    fixtureFetch([{ access_token: "t", expires_in: 3600 }, new Response(null, { status: 404 })]),
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  expect((await who({ source: "icd10", query: "Z99" }, "ru", "now")).records).toEqual([]);
+});
+
+it("loads PubMed summaries without returning credentials or full articles", async () => {
+  const search = createMedicalProviders(
+    fixtureFetch([
+      { esearchresult: { count: "100", idlist: ["123"] } },
+      {
+        result: {
+          "123": {
+            title: "<i>Asthma</i> in children",
+            fulljournalname: "Journal",
+            pubdate: "2026",
+          },
+        },
+      },
+    ]),
+    { NCBI_API_KEY: "secret" },
+  );
+  const value = await search({ source: "pubmed", query: "asthma AND children" }, "ru");
+  expect(value.records[0]).toMatchObject({
+    title: "Asthma in children",
+    code: "PMID:123",
+    url: "https://pubmed.ncbi.nlm.nih.gov/123/",
+  });
+  expect(value.truncated).toBe(true);
+  expect(JSON.stringify(value)).not.toContain("secret");
+});
+
+it("handles Orphadata single-object results and no match", async () => {
+  const search = createMedicalProviders(
+    fixtureFetch([
+      {
+        data: {
+          __count: 1,
+          results: {
+            ORPHAcode: 84,
+            "Preferred term": "Marfan syndrome",
+            OrphanetURL: "https://www.orpha.net/en/disease/detail/84",
+            SummaryInformation: [{ Definition: "Connective tissue disorder" }],
+          },
+        },
+      },
+      new Response(null, { status: 404 }),
+    ]),
+  );
+  expect((await search({ source: "orphadata", query: "ORPHA:84" }, "ru")).records[0]).toMatchObject(
+    { code: "ORPHA:84", title: "Marfan syndrome" },
+  );
+  expect((await search({ source: "orphadata", query: "unknown" }, "en")).records).toEqual([]);
+});
+
+it("bounds OSM requests and keeps coordinates and OSM attribution identity", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const search = createMedicalProviders(
+    fixtureFetch(
+      [
+        {
+          elements: [
+            {
+              type: "way",
+              id: 42,
+              tags: { name: "Clinic", "name:ru": "Клиника" },
+              center: { lat: 55, lon: 37 },
+            },
+          ],
+        },
+      ],
+      seen,
+    ),
+  );
+  const value = await search(
+    { source: "osm", query: "", latitude: 55, longitude: 37, radius: 1000 },
+    "ru",
+  );
+  expect(value.records[0]).toMatchObject({
+    sourceId: "way/42",
+    title: "Клиника",
+    latitude: 55,
+    longitude: 37,
+    url: "https://www.openstreetmap.org/way/42",
+  });
+  expect(String(seen[0]!.init?.body)).toContain("around%3A1000%2C55%2C37");
+  await expect(
+    search({ source: "osm", query: "", latitude: 55, longitude: 37, radius: 10001 }, "en"),
+  ).rejects.toMatchObject({ code: "INVALID_SEARCH" });
+});
+
+it("uses Geofabrik's region index without downloading PBF archives", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const search = createMedicalProviders(
+    fixtureFetch(
+      [
+        {
+          features: [
+            {
+              properties: {
+                id: "germany",
+                name: "Germany",
+                urls: { pbf: "https://download.geofabrik.de/europe/germany-latest.osm.pbf" },
+              },
+            },
+          ],
+        },
+      ],
+      seen,
+    ),
+  );
+  const value = await search({ source: "geofabrik", query: "germany" }, "en");
+  await search({ source: "geofabrik", query: "german" }, "en");
+  expect(seen).toHaveLength(1);
+  expect(value.records[0]!.url).toContain("germany-latest.osm.pbf");
+});
+
+it("validates public gateway input and deduplicates concurrent source calls", async () => {
+  let calls = 0;
+  const handler = createMedicalHandler(async () => {
+    calls++;
+    return result;
+  });
+  expect(
+    (await handler(request({ source: "ror", query: "medical" }, "https://other.example"), "ru"))
+      .status,
+  ).toBe(403);
+  expect((await handler(request({ source: "http://evil", query: "medical" }), "ru")).status).toBe(
+    400,
+  );
+  expect(
+    (
+      await handler(
+        request({ source: "osm", query: "", latitude: "55", longitude: 37, radius: 5000 }),
+        "ru",
+      )
+    ).status,
+  ).toBe(400);
+  const responses = await Promise.all([
+    handler(request({ source: "ror", query: "medical" }), "ru"),
+    handler(request({ source: "ror", query: "medical" }), "ru"),
+  ]);
+  expect(calls).toBe(1);
+  expect(responses[0]!.headers.get("cache-control")).toBe("private, no-store");
+  expect(await responses[1]!.json()).toEqual(result);
+});
+
+it("does not cache outages or reveal upstream errors", async () => {
+  let calls = 0;
+  const handler = createMedicalHandler(async () => {
+    calls++;
+    throw new Error("secret upstream URL");
+  });
+  for (let i = 0; i < 2; i++) {
+    const response = await handler(request({ source: "ror", query: "medical" }), "en");
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "SOURCE_UNAVAILABLE" });
+  }
+  expect(calls).toBe(2);
+  const search = createMedicalProviders(fixtureFetch([new Response(null, { status: 429 })]));
+  await expect(search({ source: "ror", query: "medical" }, "en")).rejects.toMatchObject({
+    code: "SOURCE_RATE_LIMITED",
+    status: 429,
+  });
+});
+
+it("restores downloaded records from persistent storage into a fresh TanStack DB collection", async () => {
+  const values = new Map<string, string>();
+  const storage: Storage = {
+    get length() {
+      return values.size;
+    },
+    key: (i) => [...values.keys()][i] ?? null,
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => {
+      values.set(key, value);
+    },
+    removeItem: (key) => {
+      values.delete(key);
+    },
+    clear: () => values.clear(),
+  };
+  const first = createMedicalCache(storage);
+  await saveMedicalRecords(first, [entry]);
+  await first.cleanup();
+  const restored = createMedicalCache(storage);
+  expect(await restored.toArrayWhenReady()).toMatchObject([entry]);
+  await saveMedicalRecords(restored, [{ ...entry, title: "Updated university" }]);
+  expect(restored.toArray).toHaveLength(1);
+  await restored.cleanup();
+  const updated = createMedicalCache(storage);
+  expect(await updated.toArrayWhenReady()).toMatchObject([
+    { ...entry, title: "Updated university" },
+  ]);
+  await updated.cleanup();
+});
+
+it("filters offline OSM facilities by location as well as text", () => {
+  const nearby = {
+    ...entry,
+    id: "osm:1",
+    source: "osm" as const,
+    title: "Clinic",
+    latitude: 55,
+    longitude: 37,
+  };
+  const far = { ...nearby, id: "osm:2", latitude: 56 };
+  expect(
+    filterMedicalRecords([nearby, far], "osm", "clinic", {
+      latitude: 55,
+      longitude: 37,
+      radius: 1000,
+    }),
+  ).toEqual([nearby]);
+});
+
+it("reports storage failure instead of confirming offline persistence", async () => {
+  const storage: Storage = {
+    length: 0,
+    key: () => null,
+    getItem: () => null,
+    setItem: () => {
+      throw new Error("Storage quota exceeded");
+    },
+    removeItem: () => {},
+    clear: () => {},
+  };
+  const log = rstest.spyOn(console, "error").mockImplementation(() => {});
+  const collection = createMedicalCache(storage);
+  try {
+    await expect(saveMedicalRecords(collection, [entry])).rejects.toThrow("Storage quota exceeded");
+  } finally {
+    await collection.cleanup();
+    log.mockRestore();
+  }
+});

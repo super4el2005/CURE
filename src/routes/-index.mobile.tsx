@@ -4,6 +4,7 @@ import { AiSettings } from "@/src/components/ai-settings";
 import { AuthPanel } from "@/src/components/auth-panel";
 import { LanguageSwitcher } from "@/src/components/language-switcher";
 import { LocalCounter } from "@/src/components/local-counter";
+import { MedicalCatalog } from "@/src/components/medical-catalog";
 
 export function MobileHome() {
   const { t } = useLingui();
@@ -17,6 +18,7 @@ export function MobileHome() {
       <section style={{ marginTop: 24 }}>
         <LocalCounter />
         <AiSettings />
+        <MedicalCatalog />
       </section>
       <section style={{ marginTop: 24 }}>
         <AuthPanel />

@@ -139,3 +139,15 @@ test("AI endpoint is routed through Start and rejects foreign origins without pr
   assert.equal(response.status, 403);
   assert.deepEqual(await response.json(), { error: "FORBIDDEN_ORIGIN" });
 });
+
+test("routes the medical gateway in the production bundle without contacting external services", async () => {
+  const response = await app.fetch(
+    new Request("https://cure.example/api/medical/search", {
+      method: "POST",
+      headers: { origin: "https://cure.example", "content-type": "application/json" },
+      body: JSON.stringify({ source: "invalid", query: "medical" }),
+    }),
+  );
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "INVALID_SEARCH" });
+});

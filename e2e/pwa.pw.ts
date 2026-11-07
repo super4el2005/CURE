@@ -56,6 +56,42 @@ for (const device of ["desktop", "mobile"] as const) {
       });
       await expect(page.getByText("The app is ready to open offline.")).toBeVisible();
       expect(errors, "initial online hydration").toEqual([]);
+      await context.route("**/api/medical/search", (route) =>
+        route.fulfill({
+          json: {
+            source: "ror",
+            records: [
+              {
+                id: "ror:offline-fixture",
+                source: "ror",
+                sourceId: "offline-fixture",
+                title: "Offline Medical University",
+                description: "Reference fixture",
+                code: "",
+                url: "https://ror.org/fixture",
+                dataLanguage: "en",
+                version: "2026",
+                fetchedAt: "2026-11-07T00:00:00Z",
+                country: "GB",
+                latitude: null,
+                longitude: null,
+              },
+            ],
+            total: 1,
+            truncated: false,
+            fetchedAt: "2026-11-07T00:00:00Z",
+            dataLanguage: "en",
+          },
+        }),
+      );
+      const catalog = page.getByRole("region", { name: "Medical catalogs" });
+      await catalog.getByLabel("Name, term or code").fill("medical AND university");
+      await catalog.getByRole("button", { name: "Search source" }).click();
+      await expect(
+        catalog.getByText("Downloaded records have been saved on this device."),
+      ).toBeVisible();
+      // A source's semantic query need not be a literal substring of its result titles.
+      await expect(catalog.getByText("Offline Medical University", { exact: true })).toBeVisible();
       await page.getByRole("button", { name: "Add 1 to 0?" }).click();
       await expect(page.getByRole("button", { name: "Add 1 to 1?" })).toBeVisible();
       await context.setOffline(true);
@@ -87,6 +123,18 @@ for (const device of ["desktop", "mobile"] as const) {
       await expect(
         page.getByText("Your session will be checked when you reconnect."),
       ).toBeVisible();
+      const restoredCatalog = page.getByRole("region", { name: "Medical catalogs" });
+      await expect(
+        restoredCatalog.getByText("Offline Medical University", { exact: true }),
+      ).toBeVisible();
+      await restoredCatalog.getByLabel("Name, term or code").fill("medical");
+      await expect(
+        restoredCatalog.getByText("Offline Medical University", { exact: true }),
+      ).toBeVisible();
+      await expect(restoredCatalog.getByRole("button", { name: "Search source" })).toBeDisabled();
+      await expect(
+        restoredCatalog.getByRole("link", { name: "Research Organization Registry" }),
+      ).toBeVisible();
       expect(errors, "offline restart hydration").toEqual([]);
       await page.goto("http://localhost:3102/auth/error");
       await expect(page.getByRole("heading", { name: "Unable to sign in" })).toBeVisible();
@@ -98,6 +146,7 @@ for (const device of ["desktop", "mobile"] as const) {
         return urls;
       });
       expect(cachedURLs.some((url) => url.includes("/api/auth/"))).toBe(false);
+      expect(cachedURLs.some((url) => url.includes("/api/medical/"))).toBe(false);
       expect(cachedURLs.some((url) => url.includes("/_serverFn/"))).toBe(false);
       expect(errors).toEqual([]);
       await context.setOffline(false);
