@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-07 13:02+0400\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/components/auth-panel.tsx:54
+msgid "Аккаунт"
+msgstr "Account"
+
+#: src/components/auth-panel.tsx:69
+msgid "Войти через Google"
+msgstr "Sign in with Google"
+
+#: src/routes/auth/error.tsx:14
+msgid "Вход был отменён или произошла ошибка. Вернитесь на главную и попробуйте ещё раз."
+msgstr "Sign-in was cancelled or an error occurred. Return to the home page and try again."
+
+#: src/components/auth-panel.tsx:64
+msgid "Выйти"
+msgstr "Sign out"
+
+#: src/components/local-counter.tsx:56
+msgid "Демонстрационный счётчик сохраняется только на этом устройстве."
+msgstr "The demo counter is stored only on this device."
+
+#: src/components/local-counter.tsx:60
+msgid "Добавить 1 к {count}?"
+msgstr "Add 1 to {count}?"
+
+#: src/routes/auth/error.tsx:16
+msgid "На главную"
+msgstr "Back to home"
+
+#: src/routes/auth/error.tsx:13
+msgid "Не удалось войти"
+msgstr "Unable to sign in"
+
+#: src/components/auth-panel.tsx:31
+msgid "Не удалось войти. Попробуйте ещё раз."
+msgstr "Unable to sign in. Please try again."
+
+#: src/components/auth-panel.tsx:47
+msgid "Не удалось выйти. Попробуйте ещё раз."
+msgstr "Unable to sign out. Please try again."
+
+#: src/components/local-counter.tsx:53
+msgid "Не удалось открыть локальное хранилище."
+msgstr "Unable to open local storage."
+
+#: src/components/pwa-controls.tsx:79
+msgid "Не удалось подготовить приложение для работы без интернета."
+msgstr "Unable to prepare the app for offline use."
+
+#: src/components/auth-panel.tsx:73
+msgid "Не удалось проверить сессию. Попробуйте обновить страницу."
+msgstr "Unable to check your session. Please try refreshing the page."
+
+#: src/components/local-counter.tsx:61
+msgid "Не удалось сохранить изменение на устройстве."
+msgstr "Unable to save the change on this device."
+
+#: src/components/pwa-controls.tsx:75
+msgid "Нет интернета. Доступны сохранённые на устройстве данные."
+msgstr "You are offline. Data saved on this device is available."
+
+#: src/components/pwa-controls.tsx:84
+msgid "Обновить приложение"
+msgstr "Update app"
+
+#: src/routes/index.tsx:25
+msgid "Привет, мир!"
+msgstr "Hello, world!"
+
+#: src/components/pwa-controls.tsx:73
+msgid "Приложение"
+msgstr "Application"
+
+#: src/components/pwa-controls.tsx:77
+msgid "Приложение готово к запуску без интернета."
+msgstr "The app is ready to open offline."
+
+#: src/components/auth-panel.tsx:58
+msgid "Проверяем сессию…"
+msgstr "Checking your session…"
+
+#: src/components/auth-panel.tsx:56
+msgid "Сессия будет проверена после подключения к интернету."
+msgstr "Your session will be checked when you reconnect."
+
+#: src/components/pwa-controls.tsx:82
+msgid "Установить приложение"
+msgstr "Install app"
+
+#: src/routes/index.tsx:16
+msgid "Язык интерфейса"
+msgstr "Interface language"
