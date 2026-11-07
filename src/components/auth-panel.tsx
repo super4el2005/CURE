@@ -7,7 +7,7 @@ import { authClient } from "@/src/lib/auth-client";
 import { useOnline } from "@/src/lib/network";
 
 export function AuthPanel() {
-  const { t, i18n } = useLingui();
+  const { t } = useLingui();
   const online = useOnline();
   const { data: session, isPending, error: sessionError } = authClient.useSession();
   const queryClient = useQueryClient();
@@ -20,7 +20,6 @@ export function AuthPanel() {
     setIsSubmitting(true);
     try {
       const errorURL = new URL("/auth/error", window.location.origin);
-      errorURL.searchParams.set("lang", i18n.locale);
       const result = await authClient.signIn.social({
         provider: "google",
         callbackURL: window.location.href,

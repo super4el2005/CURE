@@ -1,30 +1,17 @@
-import { useLingui } from "@lingui/react/macro";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 
-import { AuthPanel } from "@/src/components/auth-panel";
-import { LocalCounter } from "@/src/components/local-counter";
+import { DesktopHome } from "@/src/routes/-index.desktop";
+import { MobileHome } from "@/src/routes/-index.mobile";
+
+const rootRoute = getRouteApi("__root__");
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
 function Home() {
-  const { t } = useLingui();
-
-  return (
-    <main>
-      <nav aria-label={t`Язык интерфейса`}>
-        <Link to="/" search={(prev) => ({ ...prev, lang: "ru" })} lang="ru">
-          Русский
-        </Link>
-        {" / "}
-        <Link to="/" search={(prev) => ({ ...prev, lang: "en" })} lang="en">
-          English
-        </Link>
-      </nav>
-      <h1>{t`Привет, мир!`}</h1>
-      <AuthPanel />
-      <LocalCounter />
-    </main>
-  );
+  const { device } = rootRoute.useLoaderData();
+  // The prerendered PWA shell is anonymous and has no device-specific page.
+  if (device === undefined) return null;
+  return device === "mobile" ? <MobileHome /> : <DesktopHome />;
 }

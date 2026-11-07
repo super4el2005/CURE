@@ -49,7 +49,7 @@ describe("Google auth request boundaries", () => {
 
   it("rejects a cookie-bearing sign-in request from an untrusted origin", async () => {
     const response = await authHandler()(
-      signInRequest("https://attacker.example", "http://localhost:3000/?lang=ru"),
+      signInRequest("https://attacker.example", "http://localhost:3000/"),
     );
     expect(response.status).toBe(403);
     expect(await response.json()).toMatchObject({ code: "INVALID_ORIGIN" });

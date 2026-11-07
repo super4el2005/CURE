@@ -19,9 +19,12 @@ import { createServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
 import { PwaControls } from "@/src/components/pwa-controls";
-import { createI18n, resolveLocale } from "@/src/i18n";
+import { createI18n } from "@/src/i18n";
 import { authClient } from "@/src/lib/auth-client";
 import { getToken } from "@/src/lib/auth-server";
+import { defaultLocale, lastLocaleKey } from "@/src/lib/locale";
+import { getRequestDevice } from "@/src/lib/request-device";
+import { getRequestLocale } from "@/src/lib/request-locale";
 
 import mantineCoreStyles from "@mantine/core/styles.css?url";
 
@@ -45,11 +48,17 @@ export const Route = createRootRouteWithContext<{
 
     return { token, isAuthenticated: Boolean(token) };
   },
-  validateSearch: (search: Record<string, unknown>) => ({
-    lang: resolveLocale(search.lang),
+  // The build-time shell transports root loader data too. Give its client
+  // bootstrap a different match identity so locale/device are resolved locally
+  // even when opening the exact same URL that was prerendered.
+  loaderDeps: () => ({
+    fromOfflineShell:
+      typeof document !== "undefined" && document.documentElement.dataset.offlineShell === "true",
   }),
-  loaderDeps: ({ search }) => ({ locale: search.lang }),
-  loader: ({ deps }) => ({ locale: deps.locale }),
+  loader: ({ context }) => ({
+    locale: typeof window === "undefined" && context.isShell() ? defaultLocale : getRequestLocale(),
+    device: typeof window === "undefined" && context.isShell() ? undefined : getRequestDevice(),
+  }),
   head: () => ({
     meta: [
       {
@@ -81,6 +90,13 @@ function RootComponent() {
   // the same locale without relying on browser-only language detection.
   const { locale } = Route.useLoaderData();
   const i18n = React.useMemo(() => createI18n(locale), [locale]);
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(lastLocaleKey, locale);
+    } catch {
+      // A blocked store must not prevent rendering or navigation.
+    }
+  }, [locale]);
   const { token, convexQueryClient } = Route.useRouteContext();
 
   return (
@@ -101,10 +117,12 @@ function RootComponent() {
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { i18n } = useLingui();
   const { isShell } = Route.useRouteContext();
+  const { device } = Route.useLoaderData();
 
   return (
     <html
       lang={i18n.locale}
+      data-device={device}
       data-offline-shell={isShell() ? "true" : undefined}
       {...mantineHtmlProps}
     >
