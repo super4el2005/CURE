@@ -2,14 +2,7 @@ import { setupI18n } from "@lingui/core";
 
 import { messages as en } from "@/locales/en/messages.po";
 import { messages as ru } from "@/locales/ru/messages.po";
-
-export const locales = ["ru", "en"] as const;
-export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = "ru";
-
-export function resolveLocale(value: unknown): Locale {
-  return locales.find((locale) => locale === value) ?? defaultLocale;
-}
+import type { Locale } from "@/src/lib/locale";
 
 const catalogs = { ru, en };
 

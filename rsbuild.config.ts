@@ -41,6 +41,15 @@ export default defineConfig({
   ],
   tools: {
     rspack: (config, { environment, isProd }) => {
+      if (environment.name === "ssr") {
+        // Optional native WebSocket accelerators are unnecessary for HTTP AI APIs.
+        config.resolve ??= {};
+        config.resolve.alias = {
+          ...config.resolve.alias,
+          bufferutil: false,
+          "utf-8-validate": false,
+        };
+      }
       config.module ??= {};
       config.module.rules ??= [];
       config.module.rules.push({

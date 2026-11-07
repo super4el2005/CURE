@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -60,4 +61,81 @@ test("preserves redirect, multiple cookies and the upstream stream", async (t) =
   assert.deepEqual(response.headers.getSetCookie(), cookies);
   assert.equal(response.body, upstream.body);
   assert.equal(await response.text(), "redirect body");
+});
+
+test("SSR selects exactly one page per request and preserves locale", async () => {
+  for (const [userAgent, mobileHint, device] of [
+    ["Windows NT 10.0; Win64; x64", "?0", "desktop"],
+    ["iPhone; CPU iPhone OS 18_0 like Mac OS X", "?1", "mobile"],
+    ["iPad; CPU OS 18_0 like Mac OS X", "?0", "mobile"],
+    ["Macintosh; Intel Mac OS X 10_15_7", "?0", "desktop"],
+  ] as const) {
+    const response = await app.fetch(
+      new Request("https://cure-sooty.vercel.app/", {
+        headers: {
+          "user-agent": userAgent,
+          "sec-ch-ua-mobile": mobileHint,
+          "accept-language": "en-US,en;q=0.9",
+        },
+      }),
+    );
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("vary") ?? "", /User-Agent/i);
+    assert.match(response.headers.get("vary") ?? "", /Sec-CH-UA-Mobile/i);
+    const html = await response.text();
+    assert.match(html, new RegExp(`data-device="${device}"`));
+    assert.match(html, new RegExp(`data-page="${device}"`));
+    assert.doesNotMatch(
+      html,
+      new RegExp(`data-page="${device === "mobile" ? "desktop" : "mobile"}"`),
+    );
+    assert.match(html, /Hello, world!/);
+  }
+});
+
+test("prerendered offline shell contains no device-specific page", () => {
+  const html = readFileSync("dist/client/_shell.html", "utf8");
+  assert.match(html, /data-offline-shell="true"/);
+  assert.doesNotMatch(html, /data-device="(?:desktop|mobile)"/);
+  assert.doesNotMatch(html, /data-page="(?:desktop|mobile)"/);
+});
+
+test("SSR negotiates language from request headers and cookies, independently of query", async () => {
+  for (const [acceptLanguage, cookie, expected, query] of [
+    ["en-US,en;q=0.9", "", "en", ""],
+    ["ru-RU,ru;q=0.9", "", "ru", ""],
+    ["ru;q=0.2,en;q=0.9", "", "en", ""],
+    ["en-US", "cure.locale=ru", "ru", ""],
+    ["ru-RU", "cure.locale=en", "en", ""],
+    ["en-US", "cure.locale=invalid", "en", ""],
+    ["de-DE", "", "ru", ""],
+    ["", "", "ru", ""],
+    ["ru-RU", "", "ru", "?lang=en"],
+  ] as const) {
+    const response = await app.fetch(
+      new Request(`https://cure-sooty.vercel.app/${query}`, {
+        headers: { "accept-language": acceptLanguage, cookie },
+      }),
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-language"), expected);
+    assert.match(response.headers.get("vary") ?? "", /Accept-Language/i);
+    assert.match(response.headers.get("vary") ?? "", /Cookie/i);
+    const html = await response.text();
+    assert.match(html, new RegExp(`<html[^>]*lang="${expected}"`));
+    assert.match(html, expected === "en" ? /Hello, world!/ : /Привет, мир!/);
+    assert.doesNotMatch(html, /href="[^"]*[?&]lang=/);
+  }
+});
+
+test("AI endpoint is routed through Start and rejects foreign origins without provider calls", async () => {
+  const response = await app.fetch(
+    new Request("https://cure-sooty.vercel.app/api/ai/chat", {
+      method: "POST",
+      headers: { origin: "https://other.example", "content-type": "application/json" },
+      body: "{}",
+    }),
+  );
+  assert.equal(response.status, 403);
+  assert.deepEqual(await response.json(), { error: "FORBIDDEN_ORIGIN" });
 });

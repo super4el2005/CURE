@@ -7,19 +7,35 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: ru\n"
 
-#: src/components/auth-panel.tsx:54
+#: src/components/ai-settings.tsx:165
+msgid "API-ключ"
+msgstr "API-ключ"
+
+#: src/components/ai-settings.tsx:144
+msgid "Адрес API"
+msgstr "Адрес API"
+
+#: src/components/auth-panel.tsx:53
 msgid "Аккаунт"
 msgstr "Аккаунт"
 
-#: src/components/auth-panel.tsx:69
+#: src/routes/-index.desktop.tsx:14
+msgid "Версия для компьютера"
+msgstr "Версия для компьютера"
+
+#: src/components/ai-settings.tsx:220
+msgid "Войдите, чтобы настроить нейросеть."
+msgstr "Войдите, чтобы настроить нейросеть."
+
+#: src/components/auth-panel.tsx:68
 msgid "Войти через Google"
 msgstr "Войти через Google"
 
-#: src/routes/auth/error.tsx:14
+#: src/routes/auth.error.tsx:14
 msgid "Вход был отменён или произошла ошибка. Вернитесь на главную и попробуйте ещё раз."
 msgstr "Вход был отменён или произошла ошибка. Вернитесь на главную и попробуйте ещё раз."
 
-#: src/components/auth-panel.tsx:64
+#: src/components/auth-panel.tsx:63
 msgid "Выйти"
 msgstr "Выйти"
 
@@ -27,23 +43,51 @@ msgstr "Выйти"
 msgid "Демонстрационный счётчик сохраняется только на этом устройстве."
 msgstr "Демонстрационный счётчик сохраняется только на этом устройстве."
 
+#: src/components/ai-settings.tsx:204
+msgid "Для запроса к нейросети нужен интернет."
+msgstr "Для запроса к нейросети нужен интернет."
+
 #: src/components/local-counter.tsx:60
 msgid "Добавить 1 к {count}?"
 msgstr "Добавить 1 к {count}?"
 
-#: src/routes/auth/error.tsx:16
+#: src/components/ai-settings.tsx:178
+msgid "Использовать ключ"
+msgstr "Использовать ключ"
+
+#: src/components/ai-settings.tsx:190
+msgid "Ключ готов к использованию."
+msgstr "Ключ готов к использованию."
+
+#: src/components/ai-settings.tsx:189
+msgid "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
+msgstr "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
+
+#: src/routes/-index.mobile.tsx:13
+msgid "Мобильная версия"
+msgstr "Мобильная версия"
+
+#: src/components/ai-settings.tsx:135
+msgid "Модель"
+msgstr "Модель"
+
+#: src/routes/auth.error.tsx:15
 msgid "На главную"
 msgstr "На главную"
 
-#: src/routes/auth/error.tsx:13
+#: src/components/ai-settings.tsx:106
+msgid "Настройки AI"
+msgstr "Настройки AI"
+
+#: src/routes/auth.error.tsx:13
 msgid "Не удалось войти"
 msgstr "Не удалось войти"
 
-#: src/components/auth-panel.tsx:31
+#: src/components/auth-panel.tsx:30
 msgid "Не удалось войти. Попробуйте ещё раз."
 msgstr "Не удалось войти. Попробуйте ещё раз."
 
-#: src/components/auth-panel.tsx:47
+#: src/components/auth-panel.tsx:46
 msgid "Не удалось выйти. Попробуйте ещё раз."
 msgstr "Не удалось выйти. Попробуйте ещё раз."
 
@@ -51,17 +95,37 @@ msgstr "Не удалось выйти. Попробуйте ещё раз."
 msgid "Не удалось открыть локальное хранилище."
 msgstr "Не удалось открыть локальное хранилище."
 
+#: src/components/ai-settings.tsx:104
+msgid "Не удалось открыть настройки AI на устройстве."
+msgstr "Не удалось открыть настройки AI на устройстве."
+
 #: src/components/pwa-controls.tsx:79
 msgid "Не удалось подготовить приложение для работы без интернета."
 msgstr "Не удалось подготовить приложение для работы без интернета."
 
-#: src/components/auth-panel.tsx:73
+#: src/components/ai-settings.tsx:207
+msgid "Не удалось проверить подключение. Проверьте ключ, модель и настройки API."
+msgstr "Не удалось проверить подключение. Проверьте ключ, модель и настройки API."
+
+#: src/components/auth-panel.tsx:72
 msgid "Не удалось проверить сессию. Попробуйте обновить страницу."
 msgstr "Не удалось проверить сессию. Попробуйте обновить страницу."
 
 #: src/components/local-counter.tsx:61
 msgid "Не удалось сохранить изменение на устройстве."
 msgstr "Не удалось сохранить изменение на устройстве."
+
+#: src/components/ai-settings.tsx:209
+msgid "Не удалось сохранить настройки AI."
+msgstr "Не удалось сохранить настройки AI."
+
+#: src/components/ai-settings.tsx:107
+msgid "Нейросеть"
+msgstr "Нейросеть"
+
+#: src/components/ai-settings.tsx:205
+msgid "Нейросеть ответила. Подключение работает."
+msgstr "Нейросеть ответила. Подключение работает."
 
 #: src/components/pwa-controls.tsx:75
 msgid "Нет интернета. Доступны сохранённые на устройстве данные."
@@ -71,7 +135,12 @@ msgstr "Нет интернета. Доступны сохранённые на 
 msgid "Обновить приложение"
 msgstr "Обновить приложение"
 
-#: src/routes/index.tsx:25
+#: src/components/ai-settings.tsx:131
+msgid "По умолчанию используется ГигаЧат. Свой ключ не требуется."
+msgstr "По умолчанию используется ГигаЧат. Свой ключ не требуется."
+
+#: src/routes/-index.desktop.tsx:15
+#: src/routes/-index.mobile.tsx:14
 msgid "Привет, мир!"
 msgstr "Привет, мир!"
 
@@ -83,18 +152,34 @@ msgstr "Приложение"
 msgid "Приложение готово к запуску без интернета."
 msgstr "Приложение готово к запуску без интернета."
 
-#: src/components/auth-panel.tsx:58
+#: src/components/ai-settings.tsx:109
+msgid "Провайдер"
+msgstr "Провайдер"
+
+#: src/components/ai-settings.tsx:202
+msgid "Проверить подключение"
+msgstr "Проверить подключение"
+
+#: src/components/ai-settings.tsx:202
+msgid "Проверяем подключение…"
+msgstr "Проверяем подключение…"
+
+#: src/components/auth-panel.tsx:57
 msgid "Проверяем сессию…"
 msgstr "Проверяем сессию…"
 
-#: src/components/auth-panel.tsx:56
+#: src/components/auth-panel.tsx:55
 msgid "Сессия будет проверена после подключения к интернету."
 msgstr "Сессия будет проверена после подключения к интернету."
+
+#: src/components/ai-settings.tsx:187
+msgid "Удалить ключ"
+msgstr "Удалить ключ"
 
 #: src/components/pwa-controls.tsx:82
 msgid "Установить приложение"
 msgstr "Установить приложение"
 
-#: src/routes/index.tsx:16
+#: src/components/language-switcher.tsx:23
 msgid "Язык интерфейса"
 msgstr "Язык интерфейса"
