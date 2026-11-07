@@ -53,7 +53,12 @@ function Catalog() {
       if (!response.ok) {
         const code = body?.error;
         throw new Error(
-          ["SOURCE_NOT_CONFIGURED", "SOURCE_RATE_LIMITED", "INVALID_SEARCH"].includes(code)
+          [
+            "SOURCE_NOT_CONFIGURED",
+            "SOURCE_AUTH_FAILED",
+            "SOURCE_RATE_LIMITED",
+            "INVALID_SEARCH",
+          ].includes(code)
             ? code
             : "SOURCE_UNAVAILABLE",
         );
@@ -196,11 +201,13 @@ function Catalog() {
         <p role="alert">
           {search.error.message === "SOURCE_NOT_CONFIGURED"
             ? t`Для ВОЗ нужно настроить серверные WHO_ICD_CLIENT_ID и WHO_ICD_CLIENT_SECRET.`
-            : search.error.message === "SOURCE_RATE_LIMITED"
-              ? t`Источник ограничил запросы. Повторите позже.`
-              : search.error.message === "INVALID_SEARCH"
-                ? t`Проверьте запрос и параметры поиска.`
-                : t`Источник сейчас недоступен. Сохранённые записи остаются доступны.`}
+            : search.error.message === "SOURCE_AUTH_FAILED"
+              ? t`ВОЗ отклонила доступ. Проверьте ключи WHO ICD API в настройках сервера и повторите деплой.`
+              : search.error.message === "SOURCE_RATE_LIMITED"
+                ? t`Источник ограничил запросы. Повторите позже.`
+                : search.error.message === "INVALID_SEARCH"
+                  ? t`Проверьте запрос и параметры поиска.`
+                  : t`Источник сейчас недоступен. Сохранённые записи остаются доступны.`}
         </p>
       )}
       {matchesSearch && search.data && (

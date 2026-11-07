@@ -488,3 +488,23 @@ TanStack DB через `localStorageCollectionOptions`, максимум 1000 з
 Проверки без запуска серверов: `npm test`, `npm run typecheck`,
 `npm run lint`, `npm run test:vercel`. Браузерная проверка офлайн-перезапуска
 не входит в эти проверки и выполняется отдельно согласно `AGENTS.md`.
+
+### Диагностика WHO ICD API
+
+Клиент получает токен через HTTP Basic Authentication по официальной
+[инструкции WHO](https://icd.who.int/docs/icd-api/API-Authentication/).
+Ключи должны быть созданы именно в WHO ICD API, а не в Google OAuth.
+При отклонении Bearer-токена выполняется только одно обновление и повтор запроса.
+
+Ответы каталога различают отсутствие ключей (`SOURCE_NOT_CONFIGURED`),
+отказ авторизации (`SOURCE_AUTH_FAILED`) и недоступность источника
+(`SOURCE_UNAVAILABLE`). Для ошибок WHO возвращаются безопасные поля
+`stage` (`token` или `lookup`), `upstreamStatus` при наличии HTTP-ответа
+и `failure` (`http`, `network`, `timeout` или `json`). Ответы WHO, заголовки,
+ключи и токены не передаются в этих диагностических полях.
+
+При `SOURCE_AUTH_FAILED` проверьте `WHO_ICD_CLIENT_ID` и
+`WHO_ICD_CLIENT_SECRET` в **Vercel → нужный проект → Environment Variables →
+Production**, затем повторите deploy. Изменение переменных не обновляет
+уже созданный deployment. Наличие `SOURCE_UNAVAILABLE` само по себе
+не доказывает неверность ключей: смотрите `stage` и `failure`.
