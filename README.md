@@ -143,6 +143,49 @@ Better Auth в Convex: их нужно установить через `npx conv
 Документация: [Convex + Better Auth / TanStack Start](https://labs.convex.dev/better-auth/framework-guides/tanstack-start),
 [Google provider](https://better-auth.com/docs/authentication/google).
 
+## Развёртывание на Vercel
+
+`vercel.ts` подключает Rsbuild-сборку к Vercel: файлы `dist/client`
+публикуются как статика, а остальные запросы передаются в `api/index.ts`.
+Эта Node.js Function вызывает `fetch` из `dist/server/index.js`;
+все серверные чанки включены через `includeFiles`.
+Так сохраняются SSR, server functions и `/api/auth/*`, включая Google callback.
+Публикации одного `dist/client` недостаточно: обычного `index.html` в нём нет.
+
+В настройках проекта Vercel используйте **Framework Preset: Other**.
+Build Command `npm run build` и Output Directory `dist/client` заданы в конфиге;
+удалите противоречащие им ручные overrides в Dashboard. Root Directory — корень
+репозитория. Настройки хостинга хранятся в TypeScript-конфиге `vercel.ts`.
+
+В **Settings → Environment Variables** добавьте для **Production** адреса
+production deployment Convex; для **Preview** задайте адреса нужного тестового
+deployment отдельно:
+
+```dotenv
+CONVEX_URL=https://your-deployment.convex.cloud
+CONVEX_SITE_URL=https://your-deployment.convex.site
+```
+
+Локальный `.env.local` автоматически на Vercel не переносится. Эти URL нужны
+уже во время сборки. Google-реквизиты, `BETTER_AUTH_SECRET` и `SITE_URL` задаются
+в Convex deployment, как описано в разделе авторизации. Для текущего домена
+`SITE_URL=https://cure-avx3.vercel.app`, а Google Authorized redirect URI —
+`https://cure-avx3.vercel.app/api/auth/callback/google`.
+
+Статические файлы, manifest, иконки и `/_shell.html` обслуживаются раньше
+SSR-маршрута. `sw.js` перепроверяется без долгого HTTP-кеширования,
+а динамические ответы получают `Cache-Control: private, no-store`.
+Авторизация и персонализированный HTML не подменяются общей PWA-оболочкой.
+
+После публикации изменений и настройки env выполните **Redeploy**.
+Проверьте главную, прямой переход на `/auth/error?lang=en`,
+`/manifest.webmanifest`, `/sw.js`, вход Google и офлайн-перезагрузку после
+подготовки Service Worker. Агент не запускает серверы и браузер для этих проверок.
+
+Документация: [TanStack Start / Rsbuild hosting](https://tanstack.com/start/latest/docs/framework/react/guide/hosting#rsbuild),
+[Vercel Node.js Functions](https://vercel.com/docs/functions/runtimes/node-js),
+[TypeScript-конфиг Vercel](https://vercel.com/docs/project-configuration/vercel-ts).
+
 ## Форматирование и проверки
 
 Конфиги инструментов находятся в TypeScript-файлах: `rsbuild.config.ts`,
