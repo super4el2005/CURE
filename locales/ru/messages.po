@@ -11,6 +11,10 @@ msgstr ""
 msgid "API-ключ"
 msgstr "API-ключ"
 
+#: src/components/medical-catalog.tsx:181
+msgid "ROR содержит организации образования. Наличие в ROR не подтверждает медицинскую аккредитацию."
+msgstr "ROR содержит организации образования. Наличие в ROR не подтверждает медицинскую аккредитацию."
+
 #: src/components/ai-settings.tsx:173
 msgid "Адрес API"
 msgstr "Адрес API"
@@ -19,7 +23,15 @@ msgstr "Адрес API"
 msgid "Аккаунт"
 msgstr "Аккаунт"
 
-#: src/routes/-index.desktop.tsx:14
+#: src/components/medical-catalog.tsx:35
+msgid "Больницы и клиники — OpenStreetMap"
+msgstr "Больницы и клиники — OpenStreetMap"
+
+#: src/components/medical-catalog.tsx:215
+msgid "В источнике ничего не найдено."
+msgstr "В источнике ничего не найдено."
+
+#: src/routes/-index.desktop.tsx:15
 msgid "Версия для компьютера"
 msgstr "Версия для компьютера"
 
@@ -43,21 +55,57 @@ msgstr "Выйти"
 msgid "Демонстрационный счётчик сохраняется только на этом устройстве."
 msgstr "Демонстрационный счётчик сохраняется только на этом устройстве."
 
+#: src/components/medical-catalog.tsx:198
+msgid "Для ВОЗ нужно настроить серверные WHO_ICD_CLIENT_ID и WHO_ICD_CLIENT_SECRET."
+msgstr "Для ВОЗ нужно настроить серверные WHO_ICD_CLIENT_ID и WHO_ICD_CLIENT_SECRET."
+
 #: src/components/ai-settings.tsx:233
 msgid "Для запроса к нейросети нужен интернет."
 msgstr "Для запроса к нейросети нужен интернет."
+
+#: src/components/medical-catalog.tsx:178
+msgid "Для этого источника используйте английский термин или код. Перевод названий автоматически не выполняется."
+msgstr "Для этого источника используйте английский термин или код. Перевод названий автоматически не выполняется."
 
 #: src/components/local-counter.tsx:60
 msgid "Добавить 1 к {count}?"
 msgstr "Добавить 1 к {count}?"
 
+#: src/components/medical-catalog.tsx:149
+msgid "Долгота"
+msgstr "Долгота"
+
 #: src/components/ai-settings.tsx:129
 msgid "Достигнут лимит провайдера. Повторите запрос позже."
 msgstr "Достигнут лимит провайдера. Повторите запрос позже."
 
+#: src/components/medical-catalog.tsx:174
+msgid "Загружаем…"
+msgstr "Загружаем…"
+
+#: src/components/medical-catalog.tsx:96
+msgid "Загруженные записи доступны без интернета. Это сохранённая часть справочника, а не полная мировая база."
+msgstr "Загруженные записи доступны без интернета. Это сохранённая часть справочника, а не полная мировая база."
+
+#: src/components/medical-catalog.tsx:184
+msgid "Здесь доступны ссылки на региональные PBF-выгрузки OSM. Архив не является готовым списком больниц и не загружается в браузер автоматически."
+msgstr "Здесь доступны ссылки на региональные PBF-выгрузки OSM. Архив не является готовым списком больниц и не загружается в браузер автоматически."
+
 #: src/components/ai-settings.tsx:207
 msgid "Использовать ключ"
 msgstr "Использовать ключ"
+
+#: src/components/medical-catalog.tsx:104
+msgid "Источник данных"
+msgstr "Источник данных"
+
+#: src/components/medical-catalog.tsx:200
+msgid "Источник ограничил запросы. Повторите позже."
+msgstr "Источник ограничил запросы. Повторите позже."
+
+#: src/components/medical-catalog.tsx:203
+msgid "Источник сейчас недоступен. Сохранённые записи остаются доступны."
+msgstr "Источник сейчас недоступен. Сохранённые записи остаются доступны."
 
 #: src/components/ai-settings.tsx:219
 msgid "Ключ готов к использованию."
@@ -67,7 +115,24 @@ msgstr "Ключ готов к использованию."
 msgid "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
 msgstr "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
 
-#: src/routes/-index.mobile.tsx:13
+#: src/components/medical-catalog.tsx:124
+msgid "Код МКБ-10, например J45"
+msgstr "Код МКБ-10, например J45"
+
+#: src/components/medical-catalog.tsx:94
+#: src/components/medical-catalog.tsx:95
+msgid "Медицинские справочники"
+msgstr "Медицинские справочники"
+
+#: src/components/medical-catalog.tsx:38
+msgid "МКБ-10 — ВОЗ (по коду)"
+msgstr "МКБ-10 — ВОЗ (по коду)"
+
+#: src/components/medical-catalog.tsx:37
+msgid "МКБ-11 — ВОЗ"
+msgstr "МКБ-11 — ВОЗ"
+
+#: src/routes/-index.mobile.tsx:14
 msgid "Мобильная версия"
 msgstr "Мобильная версия"
 
@@ -78,6 +143,14 @@ msgstr "Модель"
 #: src/routes/auth.error.tsx:15
 msgid "На главную"
 msgstr "На главную"
+
+#: src/components/medical-catalog.tsx:124
+msgid "Название, термин или код"
+msgstr "Название, термин или код"
+
+#: src/components/medical-catalog.tsx:174
+msgid "Найти в источнике"
+msgstr "Найти в источнике"
 
 #: src/components/ai-settings.tsx:135
 msgid "Настройки AI"
@@ -119,6 +192,10 @@ msgstr "Не удалось проверить подключение. Пров�
 msgid "Не удалось проверить сессию. Попробуйте обновить страницу."
 msgstr "Не удалось проверить сессию. Попробуйте обновить страницу."
 
+#: src/components/medical-catalog.tsx:193
+msgid "Не удалось сохранить записи. Показанные результаты могут быть недоступны после закрытия приложения."
+msgstr "Не удалось сохранить записи. Показанные результаты могут быть недоступны после закрытия приложения."
+
 #: src/components/local-counter.tsx:61
 msgid "Не удалось сохранить изменение на устройстве."
 msgstr "Не удалось сохранить изменение на устройстве."
@@ -147,16 +224,36 @@ msgstr "Нейросеть ответила. Подключение работа
 msgid "Нет интернета. Доступны сохранённые на устройстве данные."
 msgstr "Нет интернета. Доступны сохранённые на устройстве данные."
 
+#: src/components/medical-catalog.tsx:187
+msgid "Нет сети: поиск выполняется только по сохранённым записям."
+msgstr "Нет сети: поиск выполняется только по сохранённым записям."
+
+#: src/components/medical-catalog.tsx:135
+msgid "Область поиска учреждений"
+msgstr "Область поиска учреждений"
+
 #: src/components/pwa-controls.tsx:84
 msgid "Обновить приложение"
 msgstr "Обновить приложение"
+
+#: src/components/medical-catalog.tsx:236
+msgid "Открыть источник"
+msgstr "Открыть источник"
 
 #: src/components/ai-settings.tsx:160
 msgid "По умолчанию используется ГигаЧат. Свой ключ не требуется."
 msgstr "По умолчанию используется ГигаЧат. Свой ключ не требуется."
 
-#: src/routes/-index.desktop.tsx:15
-#: src/routes/-index.mobile.tsx:14
+#: src/components/medical-catalog.tsx:209
+msgid "Показана ограниченная выборка."
+msgstr "Показана ограниченная выборка."
+
+#: src/components/medical-catalog.tsx:190
+msgid "Полученные записи сохранены на устройстве."
+msgstr "Полученные записи сохранены на устройстве."
+
+#: src/routes/-index.desktop.tsx:16
+#: src/routes/-index.mobile.tsx:15
 msgid "Привет, мир!"
 msgstr "Привет, мир!"
 
@@ -180,6 +277,10 @@ msgstr "Провайдер отклонил ключ или доступ к мо
 msgid "Проверить подключение"
 msgstr "Проверить подключение"
 
+#: src/components/medical-catalog.tsx:202
+msgid "Проверьте запрос и параметры поиска."
+msgstr "Проверьте запрос и параметры поиска."
+
 #: src/components/ai-settings.tsx:231
 msgid "Проверяем подключение…"
 msgstr "Проверяем подключение…"
@@ -187,6 +288,22 @@ msgstr "Проверяем подключение…"
 #: src/components/auth-panel.tsx:57
 msgid "Проверяем сессию…"
 msgstr "Проверяем сессию…"
+
+#: src/components/medical-catalog.tsx:39
+msgid "Публикации — PubMed"
+msgstr "Публикации — PubMed"
+
+#: src/components/medical-catalog.tsx:161
+msgid "Радиус, метры (до 10 000)"
+msgstr "Радиус, метры (до 10 000)"
+
+#: src/components/medical-catalog.tsx:36
+msgid "Региональные выгрузки — Geofabrik"
+msgstr "Региональные выгрузки — Geofabrik"
+
+#: src/components/medical-catalog.tsx:40
+msgid "Редкие заболевания — Orphadata"
+msgstr "Редкие заболевания — Orphadata"
 
 #: src/components/ai-settings.tsx:125
 msgid "Сервер не смог проверить сертификат нейросети."
@@ -196,13 +313,34 @@ msgstr "Сервер не смог проверить сертификат не�
 msgid "Сессия будет проверена после подключения к интернету."
 msgstr "Сессия будет проверена после подключения к интернету."
 
+#: src/components/medical-catalog.tsx:236
+msgid "Скачать PBF из источника"
+msgstr "Скачать PBF из источника"
+
+#: src/components/medical-catalog.tsx:216
+msgid "Сохранённых записей по этому запросу пока нет."
+msgstr "Сохранённых записей по этому запросу пока нет."
+
 #: src/components/ai-settings.tsx:216
 msgid "Удалить ключ"
 msgstr "Удалить ключ"
 
+#: src/components/medical-catalog.tsx:34
+msgid "Университеты — ROR"
+msgstr "Университеты — ROR"
+
 #: src/components/pwa-controls.tsx:82
 msgid "Установить приложение"
 msgstr "Установить приложение"
+
+#: src/components/medical-catalog.tsx:137
+msgid "Широта"
+msgstr "Широта"
+
+#. placeholder {0}: search.data.dataLanguage
+#: src/components/medical-catalog.tsx:208
+msgid "Язык данных: {0}."
+msgstr "Язык данных: {0}."
 
 #: src/components/language-switcher.tsx:23
 msgid "Язык интерфейса"
