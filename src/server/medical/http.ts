@@ -4,11 +4,17 @@ export class MedicalApiError extends Error {
   constructor(
     public readonly code:
       | "SOURCE_NOT_CONFIGURED"
+      | "SOURCE_AUTH_FAILED"
       | "SOURCE_UNAVAILABLE"
       | "SOURCE_RATE_LIMITED"
       | "INVALID_SEARCH"
       | "INVALID_SOURCE_RESPONSE",
     public readonly status = 502,
+    public readonly details: {
+      stage?: "token" | "lookup";
+      upstreamStatus?: number;
+      failure?: "http" | "network" | "timeout" | "json";
+    } = {},
   ) {
     super(code);
   }
@@ -60,8 +66,13 @@ export async function jsonFetch(
         : AbortSignal.timeout(15_000),
       redirect: "error",
     });
-  } catch {
-    throw new MedicalApiError("SOURCE_UNAVAILABLE");
+  } catch (error) {
+    throw new MedicalApiError("SOURCE_UNAVAILABLE", 502, {
+      failure:
+        error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name)
+          ? "timeout"
+          : "network",
+    });
   }
   if (allowNotFound && response.status === 404) {
     await response.body?.cancel();
@@ -72,11 +83,12 @@ export async function jsonFetch(
     throw new MedicalApiError(
       response.status === 429 ? "SOURCE_RATE_LIMITED" : "SOURCE_UNAVAILABLE",
       response.status === 429 ? 429 : 502,
+      { failure: "http", upstreamStatus: response.status },
     );
   }
   try {
     return object(await response.json());
   } catch {
-    throw new MedicalApiError("INVALID_SOURCE_RESPONSE");
+    throw new MedicalApiError("INVALID_SOURCE_RESPONSE", 502, { failure: "json" });
   }
 }

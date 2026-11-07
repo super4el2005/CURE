@@ -358,3 +358,112 @@ it("reports storage failure instead of confirming offline persistence", async ()
     log.mockRestore();
   }
 });
+
+it("uses documented WHO Basic client authentication and resolves F41 with server-only credentials", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const who = createWhoClient(
+    fixtureFetch(
+      [
+        { access_token: "private-token", expires_in: 3600 },
+        {
+          "@id": "http://id.who.int/icd/release/10/2019/F41",
+          title: { "@value": "Other anxiety disorders" },
+          code: "F41",
+        },
+      ],
+      seen,
+    ),
+    { WHO_ICD_CLIENT_ID: " client-id\n", WHO_ICD_CLIENT_SECRET: " client-secret\r\n" },
+  );
+  const result = await who({ source: "icd10", query: "F41" }, "ru", "now");
+  expect(result.records[0]).toMatchObject({
+    code: "F41",
+    title: "Other anxiety disorders",
+    dataLanguage: "en",
+  });
+  const headers = new Headers(seen[0]!.init?.headers);
+  expect(headers.get("authorization")).toBe(
+    `Basic ${Buffer.from("client-id:client-secret").toString("base64")}`,
+  );
+  expect(String(seen[0]!.init?.body)).toBe("scope=icdapi_access&grant_type=client_credentials");
+  expect(new Headers(seen[1]!.init?.headers).get("authorization")).toBe("Bearer private-token");
+  expect(seen[1]!.url).toBe("https://id.who.int/icd/release/10/2019/F41");
+  expect(JSON.stringify(result)).not.toContain("private-token");
+});
+
+it("distinguishes WHO token rejection from a source outage without leaking the OAuth body", async () => {
+  const providers = createMedicalProviders(
+    fixtureFetch([
+      new Response(
+        JSON.stringify({ error: "invalid_client", error_description: "secret private diagnostic" }),
+        { status: 400 },
+      ),
+    ]),
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  const response = await createMedicalHandler(providers)(
+    request({ source: "icd10", query: "F41" }),
+    "en",
+  );
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({
+    error: "SOURCE_AUTH_FAILED",
+    stage: "token",
+    upstreamStatus: 400,
+    failure: "http",
+  });
+});
+
+it("refreshes a WHO token revoked before its advertised expiry exactly once", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const who = createWhoClient(
+    fixtureFetch(
+      [
+        { access_token: "stale", expires_in: 3600 },
+        new Response(null, { status: 401 }),
+        { access_token: "renewed", expires_in: 3600 },
+        { title: { "@value": "Other anxiety disorders" }, code: "F41" },
+      ],
+      seen,
+    ),
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  expect((await who({ source: "icd10", query: "F41" }, "en", "now")).records[0]!.code).toBe("F41");
+  expect(seen).toHaveLength(4);
+  expect(new Headers(seen[3]!.init?.headers).get("authorization")).toBe("Bearer renewed");
+});
+
+it("does not retry WHO authorization indefinitely", async () => {
+  const seen: Array<{ url: string; init?: RequestInit | undefined }> = [];
+  const who = createWhoClient(
+    fixtureFetch(
+      [
+        { access_token: "stale", expires_in: 3600 },
+        new Response(null, { status: 401 }),
+        { access_token: "renewed", expires_in: 3600 },
+        new Response(null, { status: 401 }),
+      ],
+      seen,
+    ),
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  await expect(who({ source: "icd10", query: "F41" }, "en", "now")).rejects.toMatchObject({
+    code: "SOURCE_AUTH_FAILED",
+    status: 503,
+    details: { stage: "lookup", upstreamStatus: 401 },
+  });
+  expect(seen).toHaveLength(4);
+});
+
+it("preserves safe WHO failure stage for transport failures", async () => {
+  const who = createWhoClient(
+    async () => {
+      throw new TypeError("secret URL and credentials");
+    },
+    { WHO_ICD_CLIENT_ID: "id", WHO_ICD_CLIENT_SECRET: "secret" },
+  );
+  await expect(who({ source: "icd10", query: "F41" }, "en", "now")).rejects.toMatchObject({
+    code: "SOURCE_UNAVAILABLE",
+    details: { stage: "token", failure: "network" },
+  });
+});

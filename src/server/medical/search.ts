@@ -65,7 +65,8 @@ export function createMedicalHandler(search = createMedicalProviders()) {
       }
       return respond(await work);
     } catch (error) {
-      if (error instanceof MedicalApiError) return respond({ error: error.code }, error.status);
+      if (error instanceof MedicalApiError)
+        return respond({ error: error.code, ...error.details }, error.status);
       if (error instanceof SyntaxError) return respond({ error: "INVALID_SEARCH" }, 400);
       return respond({ error: "SOURCE_UNAVAILABLE" }, 502);
     }

@@ -19,16 +19,17 @@ export function createWhoClient(
   let refreshing: Promise<string> | undefined;
   async function accessToken() {
     if (token && token.expiresAt > Date.now() + 60_000) return token.value;
-    const clientId = env.WHO_ICD_CLIENT_ID;
-    const secret = env.WHO_ICD_CLIENT_SECRET;
+    const clientId = env.WHO_ICD_CLIENT_ID?.trim();
+    const secret = env.WHO_ICD_CLIENT_SECRET?.trim();
     if (!clientId || !secret) throw new MedicalApiError("SOURCE_NOT_CONFIGURED", 503);
     refreshing ??= (async () => {
       const data = await jsonFetch(fetchImpl, "https://icdaccessmanagement.who.int/connect/token", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(`${clientId}:${secret}`, "utf8").toString("base64")}`,
+        },
         body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: secret,
           scope: "icdapi_access",
           grant_type: "client_credentials",
         }),
@@ -42,9 +43,13 @@ export function createWhoClient(
         throw new MedicalApiError("INVALID_SOURCE_RESPONSE");
       token = { value: text(data.access_token), expiresAt: Date.now() + data.expires_in * 1000 };
       return token.value;
-    })().finally(() => {
-      refreshing = undefined;
-    });
+    })()
+      .catch((error: unknown) => {
+        throw whoError(error, "token");
+      })
+      .finally(() => {
+        refreshing = undefined;
+      });
     return refreshing;
   }
   return async (
@@ -67,19 +72,37 @@ export function createWhoClient(
       url.searchParams.set("useFlexisearch", "true");
       url.searchParams.set("flatResults", "true");
     }
-    const data = await jsonFetch(
-      fetchImpl,
-      url,
-      {
-        headers: {
-          Authorization: `Bearer ${await accessToken()}`,
-          "API-Version": "v2",
-          "Accept-Language": language,
-          Accept: "application/json",
+    const lookup = async (bearer: string) =>
+      jsonFetch(
+        fetchImpl,
+        url,
+        {
+          headers: {
+            Authorization: `Bearer ${bearer}`,
+            "API-Version": "v2",
+            "Accept-Language": language,
+            Accept: "application/json",
+          },
         },
-      },
-      isTen,
-    );
+        isTen,
+      );
+    const bearer = await accessToken();
+    let data;
+    try {
+      data = await lookup(bearer);
+    } catch (error) {
+      if (!(error instanceof MedicalApiError) || error.details.upstreamStatus !== 401)
+        throw whoError(error, "lookup");
+      // The upstream may revoke a token before its advertised expiry. Refresh once,
+      // without invalidating a newer token obtained by a concurrent request.
+      if (token?.value === bearer) token = undefined;
+      const renewed = await accessToken();
+      try {
+        data = await lookup(renewed);
+      } catch (retryError) {
+        throw whoError(retryError, "lookup");
+      }
+    }
     const items = isTen ? (Object.keys(data).length ? [data] : []) : rows(data.destinationEntities);
     const records = items.slice(0, 20).map((entity) => {
       const title =
@@ -111,4 +134,19 @@ export function createWhoClient(
       language,
     };
   };
+}
+
+function whoError(error: unknown, stage: "token" | "lookup") {
+  if (!(error instanceof MedicalApiError))
+    return new MedicalApiError("SOURCE_UNAVAILABLE", 502, { stage });
+  const upstreamStatus = error.details.upstreamStatus;
+  const authFailed =
+    upstreamStatus === 401 ||
+    upstreamStatus === 403 ||
+    (stage === "token" && upstreamStatus === 400);
+  return new MedicalApiError(
+    authFailed ? "SOURCE_AUTH_FAILED" : error.code,
+    authFailed ? 503 : error.status,
+    { ...error.details, stage },
+  );
 }
