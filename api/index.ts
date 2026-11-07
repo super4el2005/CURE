@@ -12,7 +12,14 @@ export default {
     const { default: server } = await serverEntry;
     const response = await server.fetch(request);
     // SSR can contain user session data; only the anonymous shell is static.
-    response.headers.set("Cache-Control", "private, no-store");
-    return response;
+    // Responses returned by fetch have immutable headers. Rewrap the stream
+    // instead of mutating the upstream response or buffering its body.
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "private, no-store");
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   },
 };

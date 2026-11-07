@@ -37,7 +37,8 @@
     "start": "srvx --prod -s ../client dist/server/index.js",
     "test:pwa": "npm run build && npm run test:browser",
     "icons": "node scripts/generate-icons.ts",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:vercel": "npm run build && node --test tests/vercel.node.ts"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.13.0",
