@@ -147,3 +147,11 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Lingui CLI output (Rsbuild imports and compiles the source .po catalogs)
+locales/*/messages.js
+locales/*/messages.js.map
+
+# Browser test artifacts
+playwright-report/
+test-results/
