@@ -7,11 +7,11 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: ru\n"
 
-#: src/components/ai-settings.tsx:165
+#: src/components/ai-settings.tsx:194
 msgid "API-ключ"
 msgstr "API-ключ"
 
-#: src/components/ai-settings.tsx:144
+#: src/components/ai-settings.tsx:173
 msgid "Адрес API"
 msgstr "Адрес API"
 
@@ -23,7 +23,7 @@ msgstr "Аккаунт"
 msgid "Версия для компьютера"
 msgstr "Версия для компьютера"
 
-#: src/components/ai-settings.tsx:220
+#: src/components/ai-settings.tsx:247
 msgid "Войдите, чтобы настроить нейросеть."
 msgstr "Войдите, чтобы настроить нейросеть."
 
@@ -43,7 +43,7 @@ msgstr "Выйти"
 msgid "Демонстрационный счётчик сохраняется только на этом устройстве."
 msgstr "Демонстрационный счётчик сохраняется только на этом устройстве."
 
-#: src/components/ai-settings.tsx:204
+#: src/components/ai-settings.tsx:233
 msgid "Для запроса к нейросети нужен интернет."
 msgstr "Для запроса к нейросети нужен интернет."
 
@@ -51,15 +51,19 @@ msgstr "Для запроса к нейросети нужен интернет.
 msgid "Добавить 1 к {count}?"
 msgstr "Добавить 1 к {count}?"
 
-#: src/components/ai-settings.tsx:178
+#: src/components/ai-settings.tsx:129
+msgid "Достигнут лимит провайдера. Повторите запрос позже."
+msgstr "Достигнут лимит провайдера. Повторите запрос позже."
+
+#: src/components/ai-settings.tsx:207
 msgid "Использовать ключ"
 msgstr "Использовать ключ"
 
-#: src/components/ai-settings.tsx:190
+#: src/components/ai-settings.tsx:219
 msgid "Ключ готов к использованию."
 msgstr "Ключ готов к использованию."
 
-#: src/components/ai-settings.tsx:189
+#: src/components/ai-settings.tsx:218
 msgid "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
 msgstr "Ключ хранится только в памяти вкладки. После перезагрузки введите его снова."
 
@@ -67,7 +71,7 @@ msgstr "Ключ хранится только в памяти вкладки. �
 msgid "Мобильная версия"
 msgstr "Мобильная версия"
 
-#: src/components/ai-settings.tsx:135
+#: src/components/ai-settings.tsx:164
 msgid "Модель"
 msgstr "Модель"
 
@@ -75,7 +79,7 @@ msgstr "Модель"
 msgid "На главную"
 msgstr "На главную"
 
-#: src/components/ai-settings.tsx:106
+#: src/components/ai-settings.tsx:135
 msgid "Настройки AI"
 msgstr "Настройки AI"
 
@@ -95,7 +99,7 @@ msgstr "Не удалось выйти. Попробуйте ещё раз."
 msgid "Не удалось открыть локальное хранилище."
 msgstr "Не удалось открыть локальное хранилище."
 
-#: src/components/ai-settings.tsx:104
+#: src/components/ai-settings.tsx:117
 msgid "Не удалось открыть настройки AI на устройстве."
 msgstr "Не удалось открыть настройки AI на устройстве."
 
@@ -103,7 +107,11 @@ msgstr "Не удалось открыть настройки AI на устро
 msgid "Не удалось подготовить приложение для работы без интернета."
 msgstr "Не удалось подготовить приложение для работы без интернета."
 
-#: src/components/ai-settings.tsx:207
+#: src/components/ai-settings.tsx:123
+msgid "Не удалось подтвердить вход. Проверьте подключение и войдите снова."
+msgstr "Не удалось подтвердить вход. Проверьте подключение и войдите снова."
+
+#: src/components/ai-settings.tsx:132
 msgid "Не удалось проверить подключение. Проверьте ключ, модель и настройки API."
 msgstr "Не удалось проверить подключение. Проверьте ключ, модель и настройки API."
 
@@ -115,15 +123,23 @@ msgstr "Не удалось проверить сессию. Попробуйт�
 msgid "Не удалось сохранить изменение на устройстве."
 msgstr "Не удалось сохранить изменение на устройстве."
 
-#: src/components/ai-settings.tsx:209
+#: src/components/ai-settings.tsx:236
 msgid "Не удалось сохранить настройки AI."
 msgstr "Не удалось сохранить настройки AI."
 
-#: src/components/ai-settings.tsx:107
+#: src/components/ai-settings.tsx:136
 msgid "Нейросеть"
 msgstr "Нейросеть"
 
-#: src/components/ai-settings.tsx:205
+#: src/components/ai-settings.tsx:121
+msgid "Нейросеть не настроена. Проверьте ключ и серверные настройки провайдера."
+msgstr "Нейросеть не настроена. Проверьте ключ и серверные настройки провайдера."
+
+#: src/components/ai-settings.tsx:131
+msgid "Нейросеть не ответила вовремя. Повторите запрос позже."
+msgstr "Нейросеть не ответила вовремя. Повторите запрос позже."
+
+#: src/components/ai-settings.tsx:234
 msgid "Нейросеть ответила. Подключение работает."
 msgstr "Нейросеть ответила. Подключение работает."
 
@@ -135,7 +151,7 @@ msgstr "Нет интернета. Доступны сохранённые на 
 msgid "Обновить приложение"
 msgstr "Обновить приложение"
 
-#: src/components/ai-settings.tsx:131
+#: src/components/ai-settings.tsx:160
 msgid "По умолчанию используется ГигаЧат. Свой ключ не требуется."
 msgstr "По умолчанию используется ГигаЧат. Свой ключ не требуется."
 
@@ -152,15 +168,19 @@ msgstr "Приложение"
 msgid "Приложение готово к запуску без интернета."
 msgstr "Приложение готово к запуску без интернета."
 
-#: src/components/ai-settings.tsx:109
+#: src/components/ai-settings.tsx:138
 msgid "Провайдер"
 msgstr "Провайдер"
 
-#: src/components/ai-settings.tsx:202
+#: src/components/ai-settings.tsx:127
+msgid "Провайдер отклонил ключ или доступ к модели."
+msgstr "Провайдер отклонил ключ или доступ к модели."
+
+#: src/components/ai-settings.tsx:231
 msgid "Проверить подключение"
 msgstr "Проверить подключение"
 
-#: src/components/ai-settings.tsx:202
+#: src/components/ai-settings.tsx:231
 msgid "Проверяем подключение…"
 msgstr "Проверяем подключение…"
 
@@ -168,11 +188,15 @@ msgstr "Проверяем подключение…"
 msgid "Проверяем сессию…"
 msgstr "Проверяем сессию…"
 
+#: src/components/ai-settings.tsx:125
+msgid "Сервер не смог проверить сертификат нейросети."
+msgstr "Сервер не смог проверить сертификат нейросети."
+
 #: src/components/auth-panel.tsx:55
 msgid "Сессия будет проверена после подключения к интернету."
 msgstr "Сессия будет проверена после подключения к интернету."
 
-#: src/components/ai-settings.tsx:187
+#: src/components/ai-settings.tsx:216
 msgid "Удалить ключ"
 msgstr "Удалить ключ"
 
