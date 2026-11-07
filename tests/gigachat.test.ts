@@ -1,4 +1,6 @@
-import { describe, expect, it } from "@rstest/core";
+import { X509Certificate } from "node:crypto";
+
+import { describe, expect, it, rstest } from "@rstest/core";
 import { chat } from "@tanstack/ai";
 import { defineByok, memoryStorage } from "@tanstack/ai-react/byok";
 import type GigaChat from "gigachat";
@@ -6,9 +8,14 @@ import type GigaChat from "gigachat";
 import { byokProviders } from "@/src/lib/ai-providers";
 import type { AiInput } from "@/src/lib/ai-providers";
 import { handleAiChat } from "@/src/server/ai-chat";
-import { AiConfigurationError } from "@/src/server/ai-error";
+import { AiConfigurationError, classifyAiError } from "@/src/server/ai-error";
 import { createByokAdapter, resolveCustomEndpoint } from "@/src/server/byok";
 import { generateGigaChat } from "@/src/server/gigachat";
+import {
+  createGigaChatHttpsAgent,
+  gigaChatRootCa,
+  gigaChatIntermediateCa,
+} from "@/src/server/gigachat-ca";
 
 const messages: AiInput["messages"] = [{ role: "user", content: "Hello" }];
 function request(body: unknown = { messages }, headers: Record<string, string> = {}) {
@@ -209,5 +216,59 @@ describe("AI HTTP boundary", () => {
       },
     );
     expect(await missing.json()).toEqual({ error: "AI_NOT_CONFIGURED" });
+  });
+});
+
+describe("GigaChat TLS and safe diagnostics", () => {
+  it("uses the official CA chain with TLS verification enabled", () => {
+    const root = new X509Certificate(gigaChatRootCa);
+    const intermediate = new X509Certificate(gigaChatIntermediateCa);
+    expect(root.fingerprint256).toBe(
+      "D2:6D:2D:02:31:B7:C3:9F:92:CC:73:85:12:BA:54:10:35:19:E4:40:5D:68:B5:BD:70:3E:97:88:CA:8E:CF:31",
+    );
+    expect(root.ca).toBe(true);
+    expect(intermediate.ca).toBe(true);
+    expect(intermediate.verify(root.publicKey)).toBe(true);
+    expect(new Date(root.validTo).getTime()).toBeGreaterThan(Date.now());
+    expect(new Date(intermediate.validTo).getTime()).toBeGreaterThan(Date.now());
+    const agent = createGigaChatHttpsAgent();
+    expect(agent.options.rejectUnauthorized).toBe(true);
+    agent.destroy();
+  });
+
+  it.each([
+    [{ cause: { code: "SELF_SIGNED_CERT_IN_CHAIN" } }, "AI_TLS_ERROR"],
+    [{ code: "UNABLE_TO_GET_ISSUER_CERT_LOCALLY" }, "AI_TLS_ERROR"],
+    [{ response: { status: 401 } }, "AI_PROVIDER_UNAUTHORIZED"],
+    [{ response: { status: 429 } }, "AI_RATE_LIMITED"],
+    [{ code: "ETIMEDOUT" }, "AI_TIMEOUT"],
+  ])("classifies known provider errors without using raw messages", (error, expected) => {
+    expect(classifyAiError(error)).toBe(expected);
+  });
+
+  it("logs only a safe error code and provider, never raw SDK requests", async () => {
+    const logger = rstest.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const response = await handleAiChat(
+        request(),
+        async () => true,
+        async () => {
+          throw {
+            code: "SELF_SIGNED_CERT_IN_CHAIN",
+            config: { headers: { Authorization: "secret-key" } },
+            message: "private-message",
+          };
+        },
+      );
+      expect(await response.json()).toEqual({ error: "AI_TLS_ERROR" });
+      expect(logger).toHaveBeenCalledWith("AI request failed", {
+        code: "AI_TLS_ERROR",
+        provider: "gigachat",
+      });
+      expect(JSON.stringify(logger.mock.calls)).not.toContain("secret-key");
+      expect(JSON.stringify(logger.mock.calls)).not.toContain("private-message");
+    } finally {
+      logger.mockRestore();
+    }
   });
 });

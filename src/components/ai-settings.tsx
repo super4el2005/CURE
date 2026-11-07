@@ -71,8 +71,21 @@ function UserAiSettings({ userId }: { userId: string }) {
         }),
         signal: abortRef.current.signal,
       });
-      if (!response.ok) throw new Error("AI connection failed");
       const body: unknown = await response.json();
+      if (!response.ok) {
+        const code =
+          typeof body === "object" && body !== null && "error" in body ? body.error : undefined;
+        const known = [
+          "AI_NOT_CONFIGURED",
+          "AUTH_UNAVAILABLE",
+          "UNAUTHENTICATED",
+          "AI_TLS_ERROR",
+          "AI_PROVIDER_UNAUTHORIZED",
+          "AI_RATE_LIMITED",
+          "AI_TIMEOUT",
+        ];
+        throw new Error(typeof code === "string" && known.includes(code) ? code : "AI_UNAVAILABLE");
+      }
       if (
         typeof body !== "object" ||
         body === null ||
@@ -102,6 +115,22 @@ function UserAiSettings({ userId }: { userId: string }) {
   }
 
   if (!collection) return <p role="alert">{t`Не удалось открыть настройки AI на устройстве.`}</p>;
+  const checkError = check.error?.message;
+  const checkErrorText =
+    checkError === "AI_NOT_CONFIGURED"
+      ? t`Нейросеть не настроена. Проверьте ключ и серверные настройки провайдера.`
+      : checkError === "AUTH_UNAVAILABLE" || checkError === "UNAUTHENTICATED"
+        ? t`Не удалось подтвердить вход. Проверьте подключение и войдите снова.`
+        : checkError === "AI_TLS_ERROR"
+          ? t`Сервер не смог проверить сертификат нейросети.`
+          : checkError === "AI_PROVIDER_UNAUTHORIZED"
+            ? t`Провайдер отклонил ключ или доступ к модели.`
+            : checkError === "AI_RATE_LIMITED"
+              ? t`Достигнут лимит провайдера. Повторите запрос позже.`
+              : checkError === "AI_TIMEOUT"
+                ? t`Нейросеть не ответила вовремя. Повторите запрос позже.`
+                : t`Не удалось проверить подключение. Проверьте ключ, модель и настройки API.`;
+
   return (
     <section aria-label={t`Настройки AI`}>
       <h2>{t`Нейросеть`}</h2>
@@ -203,9 +232,7 @@ function UserAiSettings({ userId }: { userId: string }) {
       </button>
       {!online && <p role="status">{t`Для запроса к нейросети нужен интернет.`}</p>}
       {check.isSuccess && <p role="status">{t`Нейросеть ответила. Подключение работает.`}</p>}
-      {check.isError && (
-        <p role="alert">{t`Не удалось проверить подключение. Проверьте ключ, модель и настройки API.`}</p>
-      )}
+      {check.isError && <p role="alert">{checkErrorText}</p>}
       {failed && <p role="alert">{t`Не удалось сохранить настройки AI.`}</p>}
     </section>
   );

@@ -1,11 +1,9 @@
 import "@tanstack/react-start/server-only";
-import { Agent } from "node:https";
-import { getCACertificates } from "node:tls";
-
 import GigaChat from "gigachat";
 
 import type { AiInput } from "@/src/lib/ai-providers";
 import { AiConfigurationError } from "@/src/server/ai-error";
+import { createGigaChatHttpsAgent } from "@/src/server/gigachat-ca";
 
 let client: GigaChat | undefined;
 
@@ -27,13 +25,7 @@ export function getGigaChatClient() {
     baseUrl: "https://api.giga.chat/v1",
     timeout: 60,
     verbose: false,
-    ...(process.env.GIGACHAT_CA_CERT
-      ? {
-          httpsAgent: new Agent({
-            ca: [...getCACertificates("default"), process.env.GIGACHAT_CA_CERT],
-          }),
-        }
-      : {}),
+    httpsAgent: createGigaChatHttpsAgent(process.env.GIGACHAT_CA_CERT),
   });
   return client;
 }

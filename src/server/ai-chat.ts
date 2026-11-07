@@ -1,7 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { isAiProvider } from "@/src/lib/ai-providers";
 import type { AiInput } from "@/src/lib/ai-providers";
-import { AiConfigurationError } from "@/src/server/ai-error";
+import { classifyAiError } from "@/src/server/ai-error";
 import { generateByok } from "@/src/server/byok";
 import { generateGigaChat } from "@/src/server/gigachat";
 
@@ -76,9 +76,8 @@ export async function handleAiChat(
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    return failure(
-      error instanceof AiConfigurationError ? "AI_NOT_CONFIGURED" : "AI_UNAVAILABLE",
-      503,
-    );
+    const code = classifyAiError(error);
+    console.error("AI request failed", { code, provider: input.provider });
+    return failure(code, 503);
   }
 }
